@@ -10,9 +10,11 @@ import org.eclipse.egit.github.core.service.PullRequestService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.Collection;
 import java.util.Properties;
 
@@ -98,8 +100,32 @@ public class App {
 		String repo = pr.getHead().getRepo().getCloneUrl();
 		String branch = pr.getHead().getLabel();
 		System.out.println("repo = "+repo+" branch = "+branch);
-	//	addComment(pr.getNumber(), "Tested pull request");
+		String commandOut = runCommand("./run.sh "+repo+" "+branch);
+		addComment(pr.getNumber(), "Tested pull request." +
+				"Result: \n" +
+				commandOut);
 	}
+
+	private String runCommand(String command) {
+		Runtime rt = Runtime.getRuntime();
+		try {
+			Process pr = rt.exec(command);
+			pr.waitFor();
+			String ret = convertStreamToString(pr.getInputStream());
+			ret += "\n";
+			ret += convertStreamToString(pr.getErrorStream());
+			return ret;
+		} catch (Throwable e) {
+			LOG.warn("Error running command '"+command+"'.",e);
+		}
+		return null;
+	}
+
+	static String convertStreamToString(java.io.InputStream is) {
+		java.util.Scanner s = new java.util.Scanner(is).useDelimiter("\\A");
+		return s.hasNext() ? s.next() : "";
+	}
+
 
 	private void addComment(int id, String comment) {
 		try {
