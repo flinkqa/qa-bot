@@ -10,11 +10,9 @@ import org.eclipse.egit.github.core.service.PullRequestService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.util.Collection;
 import java.util.Properties;
 
@@ -32,6 +30,7 @@ public class App {
 
 	private final static String TESTED_PULL_REQUEST = "Tested pull request";
 	private final static String RUN_QA = "run qa";
+	private final int WAIT_MINUTES = 10;
 
 	public void run() {
 		Properties prop = new Properties();
@@ -51,11 +50,22 @@ public class App {
 		ghClient = new GitHubClient();
 		ghClient.setCredentials(user, prop.getProperty("github.password"));
 
-		repo = RepositoryId.createFromId("flinkqa/test");
+		repo = RepositoryId.createFromId("flinkqa/flink");
 
 		is = new IssueService(ghClient);
 
-		checkForNewWork();
+		LOG.info("Service initialized. Starting checker-loop.");
+		while(true) {
+			LOG.info("Just woke up to check for new work");
+			checkForNewWork();
+			LOG.info("Done checking all pull requests. Going to sleep for "+WAIT_MINUTES+" minutes");
+			try {
+				Thread.sleep(WAIT_MINUTES * 60 * 1000);
+			} catch (InterruptedException e) {
+				LOG.warn("Interrupted ", e);
+				Thread.interrupted();
+			}
+		}
 	}
 
 	private void checkForNewWork() {
