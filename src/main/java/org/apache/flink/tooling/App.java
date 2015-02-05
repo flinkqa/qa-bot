@@ -74,18 +74,16 @@ public class App {
 		while(pages.hasNext()) {
 			Collection<PullRequest> page = pages.next();
 			for(PullRequest pr : page) {
-				System.out.println("pr "+pr);
 				// check if I tested the pull request already
 				boolean needsTesting = true;
 				// get comments
 				Collection<Comment> comments = getComments(pr.getNumber());
 				// go through comments and see whats the latest state.
 				for(Comment c : comments) {
-					System.out.println("Comment = "+c.getBody());
 					if(c.getBody().contains(TESTED_PULL_REQUEST)) {
 						needsTesting = false;
 					}
-					if(c.getBody().contains(RUN_QA)) {
+					if(c.getBody().toLowerCase().contains(RUN_QA)) {
 						needsTesting = true;
 					}
 				}
@@ -108,7 +106,7 @@ public class App {
 	private void runQA(PullRequest pr) {
 		LOG.info("running QA on " + pr.getTitle());
 		String repo = pr.getHead().getRepo().getCloneUrl();
-		String branch = pr.getHead().getLabel();
+		String branch = pr.getHead().getRef();
 		System.out.println("repo = "+repo+" branch = "+branch);
 		String commandOut = runCommand("./run.sh "+repo+" "+branch);
 		addComment(pr.getNumber(), "Tested pull request." +
