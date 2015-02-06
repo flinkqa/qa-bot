@@ -30,7 +30,7 @@ public class App {
 
 	private final static String TESTED_PULL_REQUEST = "Tested pull request";
 	private final static String RUN_QA = "run qa";
-	private final int WAIT_MINUTES = 10;
+	private int waitMinutes = 10;
 
 	public void run() {
 		Properties prop = new Properties();
@@ -50,7 +50,8 @@ public class App {
 		ghClient = new GitHubClient();
 		ghClient.setCredentials(user, prop.getProperty("github.password"));
 
-		repo = RepositoryId.createFromId("flinkqa/flink");
+		repo = RepositoryId.createFromId(prop.getProperty("github.repo"));
+		waitMinutes = Integer.valueOf(prop.getProperty("waitminutes"));
 
 		is = new IssueService(ghClient);
 
@@ -58,9 +59,9 @@ public class App {
 		while(true) {
 			LOG.info("Just woke up to check for new work");
 			checkForNewWork();
-			LOG.info("Done checking all pull requests. Going to sleep for "+WAIT_MINUTES+" minutes");
+			LOG.info("Done checking all pull requests. Going to sleep for "+ waitMinutes +" minutes");
 			try {
-				Thread.sleep(WAIT_MINUTES * 60 * 1000);
+				Thread.sleep(waitMinutes * 60 * 1000);
 			} catch (InterruptedException e) {
 				LOG.warn("Interrupted ", e);
 				Thread.interrupted();
@@ -107,7 +108,6 @@ public class App {
 		LOG.info("running QA on " + pr.getTitle());
 		String repo = pr.getHead().getRepo().getCloneUrl();
 		String branch = pr.getHead().getRef();
-		System.out.println("repo = "+repo+" branch = "+branch);
 		String commandOut = runCommand("./run.sh "+repo+" "+branch);
 		addComment(pr.getNumber(), "Tested pull request." +
 				"Result: \n" +
@@ -115,6 +115,7 @@ public class App {
 	}
 
 	private String runCommand(String command) {
+		LOG.info("Running command '"+command+"'");
 		Runtime rt = Runtime.getRuntime();
 		try {
 			Process pr = rt.exec(command);

@@ -12,7 +12,7 @@ fi
 
 cd flink
 git remote set-url totest $REPO
-git fetch totest
+git fetch -q totest
 git checkout -q totest/$BRANCH
 
 if [ -f "tools/qa-check.sh" ] ; then
