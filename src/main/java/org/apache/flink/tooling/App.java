@@ -31,6 +31,7 @@ public class App {
 	private final static String TESTED_PULL_REQUEST = "Tested pull request";
 	private final static String RUN_QA = "run qa";
 	private int waitMinutes = 10;
+	private int minPullRequestId = -1; // basically the pull request when this service was enabled
 
 	public void run() {
 		Properties prop = new Properties();
@@ -52,6 +53,7 @@ public class App {
 
 		repo = RepositoryId.createFromId(prop.getProperty("github.repo"));
 		waitMinutes = Integer.valueOf(prop.getProperty("waitminutes"));
+		minPullRequestId = Integer.valueOf(prop.getProperty("minpullrequestid"));
 
 		is = new IssueService(ghClient);
 
@@ -75,6 +77,10 @@ public class App {
 		while(pages.hasNext()) {
 			Collection<PullRequest> page = pages.next();
 			for(PullRequest pr : page) {
+				if(pr.getNumber() < minPullRequestId) {
+					LOG.info("Skpping pull request #"+pr.getNumber()+": "+pr.getTitle()+" because " +
+							"its below the minPullRequestId of "+minPullRequestId);
+				}
 				// check if I tested the pull request already
 				boolean needsTesting = true;
 				// get comments
