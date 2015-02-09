@@ -80,6 +80,7 @@ public class App {
 				if(pr.getNumber() < minPullRequestId) {
 					LOG.info("Skpping pull request #"+pr.getNumber()+": "+pr.getTitle()+" because " +
 							"its below the minPullRequestId of "+minPullRequestId);
+					continue;
 				}
 				// check if I tested the pull request already
 				boolean needsTesting = true;
@@ -103,7 +104,7 @@ public class App {
 
 	private Collection<Comment> getComments(int id) {
 		try {
-			return is.getComments(user, repo.getName(), id);
+			return is.getComments(repo.getOwner(), repo.getName(), id);
 		} catch (IOException e) {
 			LOG.warn("Error getting comments", e);
 		}
