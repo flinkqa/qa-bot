@@ -16,6 +16,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Properties;
 
@@ -128,14 +129,14 @@ public class App {
 		LOG.info("running QA on " + pr.getTitle());
 		String repo = pr.getHead().getRepo().getCloneUrl();
 		String branch = pr.getHead().getRef();
-		String commandOut = runCommand("run.sh " + repo + " " + branch);
+		String commandOut = runCommand("bash", "run.sh", repo, branch);
 		addComment(pr.getNumber(), "Tested pull request." +
 				"Result: \n" +
 				commandOut);
 	}
 
-	private String runCommand(String command) {
-		LOG.info("Running command '" + command + "'");
+	private String runCommand(String... command) {
+		LOG.info("Running command '" + Arrays.toString(command) + "'");
 
 		PrintStream oldStdout = System.out;
 		PrintStream oldStderr = System.err;
@@ -154,19 +155,13 @@ public class App {
 			proc.waitFor();
 			return baos.toString();
 		} catch (Throwable e) {
-			LOG.warn("Error running command '"+command+"'.", e);
-			return "Error running command '"+command+"':\n\n" + e;
+			LOG.warn("Error running command '"+Arrays.toString(command)+"'.", e);
+			return "Error running command '"+Arrays.toString(command)+"':\n\n" + e;
 		} finally {
 			System.setOut(oldStdout);
 			System.setErr(oldStderr);
 		}
 	}
-
-	static String convertStreamToString(java.io.InputStream is) {
-		java.util.Scanner s = new java.util.Scanner(is).useDelimiter("\\A");
-		return s.hasNext() ? s.next() : "";
-	}
-
 
 	private void addComment(int id, String comment) {
 		try {
