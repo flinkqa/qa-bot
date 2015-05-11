@@ -1,0 +1,10 @@
+## Required
+
+#github.user = flinkqa
+#github.password = secret
+#github.repo = flinkqa/flink
+
+## Optional
+
+#waitminutes = 60
+#minpullrequestid = 376
