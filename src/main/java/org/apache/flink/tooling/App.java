@@ -155,7 +155,9 @@ public class App {
 
 	private void addComment(int id, String comment) {
 		try {
-			is.createComment(user, repo.getName(), id, comment);
+			is.createComment(user, repo.getName(), id,
+					// do not exceed the maximum length for comments in the GitHub API
+					comment.substring(0, Math.min(comment.length(), 262144)));
 		} catch (IOException e) {
 			LOG.warn("Error adding comment", e);
 		}
