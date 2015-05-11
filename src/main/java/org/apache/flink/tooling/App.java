@@ -10,12 +10,10 @@ import org.eclipse.egit.github.core.service.PullRequestService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.PrintStream;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Properties;
@@ -145,10 +143,10 @@ public class App {
 		processBuilder.command(command);
 		try {
 			Process proc = processBuilder.start();
-			proc.waitFor();
 			// read all output at once
-			Scanner s = new Scanner(proc.getInputStream()).useDelimiter("\\A");
-			return s.hasNext() ? s.next() : "";
+			String output = new Scanner(proc.getInputStream()).useDelimiter("\\A").next();
+			proc.waitFor();
+			return output;
 		} catch (Throwable e) {
 			LOG.warn("Error running command '"+Arrays.toString(command)+"'.", e);
 			return "Error running command '"+Arrays.toString(command)+"':\n\n" + e;
