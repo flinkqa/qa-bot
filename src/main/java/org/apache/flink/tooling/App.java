@@ -19,6 +19,7 @@ import java.io.PrintStream;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Properties;
+import java.util.Scanner;
 
 /**
  * Hello world!
@@ -135,31 +136,22 @@ public class App {
 				commandOut);
 	}
 
-	private String runCommand(String... command) {
+	public static String runCommand(String... command) {
 		LOG.info("Running command '" + Arrays.toString(command) + "'");
-
-		PrintStream oldStdout = System.out;
-		PrintStream oldStderr = System.err;
-
-		// redirect stdout and std err
-		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		PrintStream targetStream = new PrintStream(baos);
-		System.setOut(targetStream);
-		System.setErr(targetStream);
 
 		ProcessBuilder processBuilder = new ProcessBuilder();
 		processBuilder.directory(new File(System.getProperty("user.dir")));
-		processBuilder.inheritIO().command(command);
+		processBuilder.redirectErrorStream(true);
+		processBuilder.command(command);
 		try {
 			Process proc = processBuilder.start();
 			proc.waitFor();
-			return baos.toString();
+			// read all output at once
+			Scanner s = new Scanner(proc.getInputStream()).useDelimiter("\\A");
+			return s.hasNext() ? s.next() : "";
 		} catch (Throwable e) {
 			LOG.warn("Error running command '"+Arrays.toString(command)+"'.", e);
 			return "Error running command '"+Arrays.toString(command)+"':\n\n" + e;
-		} finally {
-			System.setOut(oldStdout);
-			System.setErr(oldStderr);
 		}
 	}
 
