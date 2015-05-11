@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -127,7 +128,7 @@ public class App {
 		LOG.info("running QA on " + pr.getTitle());
 		String repo = pr.getHead().getRepo().getCloneUrl();
 		String branch = pr.getHead().getRef();
-		String commandOut = runCommand("./run.sh " + repo + " " + branch);
+		String commandOut = runCommand("run.sh " + repo + " " + branch);
 		addComment(pr.getNumber(), "Tested pull request." +
 				"Result: \n" +
 				commandOut);
@@ -145,7 +146,9 @@ public class App {
 		System.setOut(targetStream);
 		System.setErr(targetStream);
 
-		ProcessBuilder processBuilder = new ProcessBuilder().inheritIO().command(command);
+		ProcessBuilder processBuilder = new ProcessBuilder();
+		processBuilder.directory(new File(System.getProperty("user.dir")));
+		processBuilder.inheritIO().command(command);
 		try {
 			Process proc = processBuilder.start();
 			proc.waitFor();
