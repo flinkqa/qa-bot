@@ -10,9 +10,11 @@ import org.eclipse.egit.github.core.service.PullRequestService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PrintStream;
 import java.util.Collection;
 import java.util.Properties;
 
@@ -115,26 +117,36 @@ public class App {
 		LOG.info("running QA on " + pr.getTitle());
 		String repo = pr.getHead().getRepo().getCloneUrl();
 		String branch = pr.getHead().getRef();
-		String commandOut = runCommand("./run.sh "+repo+" "+branch);
+		String commandOut = runCommand("./run.sh " + repo + " " + branch);
 		addComment(pr.getNumber(), "Tested pull request." +
 				"Result: \n" +
 				commandOut);
 	}
 
 	private String runCommand(String command) {
-		LOG.info("Running command '"+command+"'");
-		Runtime rt = Runtime.getRuntime();
+		LOG.info("Running command '" + command + "'");
+
+		PrintStream oldStdout = System.out;
+		PrintStream oldStderr = System.err;
+
+		// redirect stdout and std err
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		PrintStream targetStream = new PrintStream(baos);
+		System.setOut(targetStream);
+		System.setErr(targetStream);
+
+		ProcessBuilder processBuilder = new ProcessBuilder().inheritIO().command(command);
 		try {
-			Process pr = rt.exec(command);
-			pr.waitFor();
-			String ret = convertStreamToString(pr.getInputStream());
-			ret += "\n";
-			ret += convertStreamToString(pr.getErrorStream());
-			return ret;
+			Process proc = processBuilder.start();
+			proc.waitFor();
+			return baos.toString();
 		} catch (Throwable e) {
-			LOG.warn("Error running command '"+command+"'.",e);
+			LOG.warn("Error running command '"+command+"'.", e);
+			return "Error running command '"+command+"':\n\n" + e;
+		} finally {
+			System.setOut(oldStdout);
+			System.setErr(oldStderr);
 		}
-		return null;
 	}
 
 	static String convertStreamToString(java.io.InputStream is) {
