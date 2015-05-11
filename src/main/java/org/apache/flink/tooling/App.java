@@ -54,8 +54,18 @@ public class App {
 		ghClient.setCredentials(user, prop.getProperty("github.password"));
 
 		repo = RepositoryId.createFromId(prop.getProperty("github.repo"));
-		waitMinutes = Integer.valueOf(prop.getProperty("waitminutes"));
-		minPullRequestId = Integer.valueOf(prop.getProperty("minpullrequestid"));
+		try {
+			waitMinutes = Integer.valueOf(prop.getProperty("waitminutes"));
+		} catch (NumberFormatException e) {
+			// use default value
+			LOG.warn("Could parse waiting time, using default value " + waitMinutes);
+		}
+		try {
+			minPullRequestId = Integer.valueOf(prop.getProperty("minpullrequestid"));
+		} catch (NumberFormatException e) {
+			// use default value
+			LOG.warn("Could parse min pull request id, using default value " + minPullRequestId);
+		}
 
 		is = new IssueService(ghClient);
 
