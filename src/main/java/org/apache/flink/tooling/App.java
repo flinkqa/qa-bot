@@ -125,7 +125,7 @@ public class App {
 	}
 
 	private void runQA(PullRequest pr) {
-		LOG.info("running QA on " + pr.getTitle());
+		LOG.info("running QA on #" + pr.getNumber() + ":" + pr.getTitle() + " at " + pr.getHtmlUrl());
 		String repo = pr.getHead().getRepo().getCloneUrl();
 		String branch = pr.getHead().getRef();
 		String commandOut = runCommand("bash", "run.sh", repo, branch);
