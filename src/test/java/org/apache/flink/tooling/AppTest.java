@@ -1,13 +1,16 @@
 package org.apache.flink.tooling;
 
+import junit.framework.Assert;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
+import org.eclipse.egit.github.core.Comment;
 
-import java.io.IOException;
+import java.util.Random;
 
 /**
- * Unit test for simple App.
+ * Github interaction tests only work if the config-test.properties files has the authorization key set
+ * and the repository has been set to flinkqa/flink.
  */
 public class AppTest 
 	extends TestCase
@@ -30,11 +33,21 @@ public class AppTest
 		return new TestSuite( AppTest.class );
 	}
 
-	/**
-	 * Rigourous Test :-)
-	 */
-	public void testApp()
-	{
+	public void testPostComment() {
+		App app = new App();
+		app.loadConfiguration("config-test.properties");
+
+		String commentText = "Unit test: " + new Random().nextInt();
+		// add to the flink pull request (has to exist)
+		app.addComment(1, commentText);
+
+		Comment[] type = new Comment[]{};
+		Comment[] comments = app.getComments(1).toArray(type);
+
+		assertTrue(comments[comments.length - 1].getBody().equals(commentText));
+	}
+
+	public void testGetPullRequests() {
 	}
 
 	public void testRunCommandStdout() {

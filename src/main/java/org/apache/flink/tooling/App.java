@@ -36,17 +36,23 @@ public class App {
 	private int waitMinutes = 10;
 	private int minPullRequestId = -1; // basically the pull request when this service was enabled
 
-	public void run() {
+
+	protected void loadConfiguration() {
+		loadConfiguration("config.properties");
+	}
+
+	protected void loadConfiguration(String configFile) {
+
 		Properties prop = new Properties();
 		InputStream input = null;
 
 		try {
 
-			input = new FileInputStream("config.properties");
+			input = new FileInputStream(configFile);
 			// load a properties file
 			prop.load(input);
 		} catch(Exception e) {
-			System.err.println("Error loading 'conf.properties'");
+			System.err.println("Error loading config file: " + configFile);
 			e.printStackTrace();
 			System.exit(1);
 		}
@@ -69,6 +75,11 @@ public class App {
 		}
 
 		is = new IssueService(ghClient);
+	}
+
+	public void run() {
+
+		loadConfiguration();
 
 		LOG.info("Service initialized. Starting checker-loop.");
 		while(true) {
@@ -76,7 +87,11 @@ public class App {
 			checkForNewWork();
 			LOG.info("Done checking all pull requests. Going to sleep for "+ waitMinutes +" minutes");
 			try {
-				Thread.sleep(waitMinutes * 60 * 1000);
+				if (waitMinutes > 0) {
+					Thread.sleep(waitMinutes * 60 * 1000);
+				} else {
+					break;
+				}
 			} catch (InterruptedException e) {
 				LOG.warn("Interrupted ", e);
 				Thread.interrupted();
@@ -115,7 +130,7 @@ public class App {
 		}
 	}
 
-	private Collection<Comment> getComments(int id) {
+	protected Collection<Comment> getComments(int id) {
 		try {
 			return is.getComments(repo.getOwner(), repo.getName(), id);
 		} catch (IOException e) {
@@ -153,7 +168,7 @@ public class App {
 		}
 	}
 
-	private void addComment(int id, String comment) {
+	protected void addComment(int id, String comment) {
 		try {
 			is.createComment(user, repo.getName(), id,
 					// do not exceed the maximum length for comments in the GitHub API
