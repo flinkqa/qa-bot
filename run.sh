@@ -1,19 +1,22 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
+# fail immediately
+set -e
 
 REPO=$1
 BRANCH=$2
 
+FLINK_REPO="http://git-wip-us.apache.org/repos/asf/flink.git"
 
 if [ ! -d  "flink" ] ; then
-	echo "cloning flink"
-	git clone http://git-wip-us.apache.org/repos/asf/flink.git
+	git clone -b master --single-branch "$FLINK_REPO"
 fi
 
 cd flink
-git remote set-url totest $REPO
-git fetch -q totest
-git checkout -q totest/$BRANCH
+git pull origin
+
+git fetch -q "$REPO" "$BRANCH"
+git checkout -q FETCH_HEAD
 
 if [ -f "tools/qa-check.sh" ] ; then
     echo "Running ./tools/qa-check.sh"
