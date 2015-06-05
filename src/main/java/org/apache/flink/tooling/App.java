@@ -143,13 +143,19 @@ public class App {
 		LOG.info("running QA on #" + pr.getNumber() + ":" + pr.getTitle() + " at " + pr.getHtmlUrl());
 		String repo = pr.getHead().getRepo().getCloneUrl();
 		String branch = pr.getHead().getRef();
-		String commandOut = runCommand("bash", "run.sh", repo, branch);
-		addComment(pr.getNumber(), "Tested pull request." +
-				"Result: \n" +
-				commandOut);
+		CommandResult result = runCommand("bash", "run.sh", repo, branch);
+		if (result.resultCode == 0) {
+			addComment(pr.getNumber(), "Tested pull request." +
+					"Result: \n" +
+					result.output);
+		} else {
+			addComment(pr.getNumber(), "Tested pull request but QA script returned errors." +
+					"Result: \n" +
+					result.output);
+		}
 	}
 
-	public static String runCommand(String... command) {
+	public static CommandResult runCommand(String... command) {
 		LOG.info("Running command '" + Arrays.toString(command) + "'");
 
 		ProcessBuilder processBuilder = new ProcessBuilder();
@@ -160,11 +166,11 @@ public class App {
 			Process proc = processBuilder.start();
 			// read all output at once
 			String output = new Scanner(proc.getInputStream()).useDelimiter("\\A").next();
-			proc.waitFor();
-			return output;
+			int resultCode = proc.waitFor();
+			return new CommandResult(output, resultCode);
 		} catch (Throwable e) {
-			LOG.warn("Error running command '"+Arrays.toString(command)+"'.", e);
-			return "Error running command '"+Arrays.toString(command)+"':\n\n" + e;
+			LOG.warn("Error running command '"+ Arrays.toString(command) + "'.", e);
+			return new CommandResult("Error running command '"+ Arrays.toString(command) + "':\n\n" + e, -1);
 		}
 	}
 

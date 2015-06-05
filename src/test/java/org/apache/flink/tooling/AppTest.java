@@ -52,18 +52,18 @@ public class AppTest
 
 	public void testRunCommandStdout() {
 		String expected = "testing";
-		String output = App.runCommand("echo", "-n", expected);
-		assertEquals(expected, output);
+		CommandResult result = App.runCommand("echo", "-n", expected);
+		assertEquals(expected, result.output);
 	}
 
 	public void testRunCommandStderr() {
 		String className = "ILLEGALCLASS";
-		String output = App.runCommand("java", className);
-		assertEquals("Error: Could not find or load main class " + className + "\n", output);
+		CommandResult result = App.runCommand("java", className);
+		assertEquals("Error: Could not find or load main class " + className + "\n", result.output);
 	}
 
 	public void testIllegalCommand() {
-		String output =	App.runCommand("ILLEGALPROGRAM");
-		assertTrue(output.startsWith("Error running"));
+		CommandResult result = App.runCommand("ILLEGALPROGRAM");
+		assertTrue(result.output.startsWith("Error running"));
 	}
 }
