@@ -61,6 +61,8 @@ public class App {
 		ghClient.setCredentials(user, prop.getProperty("github.password"));
 
 		repo = RepositoryId.createFromId(prop.getProperty("github.repo"));
+		LOG.info("Creating configuration for repository: " + repo);
+
 		try {
 			waitMinutes = Integer.valueOf(prop.getProperty("waitminutes"));
 		} catch (NumberFormatException e) {

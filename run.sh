@@ -2,6 +2,7 @@
 
 # fail immediately
 set -e
+set -o
 
 REPO=$1
 BRANCH=$2
@@ -13,14 +14,18 @@ if [ ! -d  "flink" ] ; then
 fi
 
 cd flink
-git pull origin
+git checkout master
+git pull origin master
 
 git fetch -q "$REPO" "$BRANCH"
 git checkout -q FETCH_HEAD
 
 if [ -f "tools/qa-check.sh" ] ; then
     echo "Running ./tools/qa-check.sh"
-    ./tools/qa-check.sh
+    # execute everything in a secure linux container
+    # link source into /mnt inside container
+    # run and kill after 2 hours
+    timeout -s SIGKILL 2h docker run -v `pwd`:/mnt/ debian:7 bash -c "cd /mnt/ && ./tools/qa-check.sh"
 else
     echo "Branch $BRANCH from repo $REPO does not contain the qa-check.sh script"
 fi
