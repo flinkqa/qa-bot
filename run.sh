@@ -29,7 +29,10 @@ if [ -f "tools/qa-check.sh" ] ; then
     # execute everything in a secure linux container
     # link source into /mnt inside container
     # run and kill after 2 hours
-    timeout -s SIGKILL 2h docker run -v `pwd`:/mnt/ debian:7 bash -c "cd /mnt/ && ./tools/qa-check.sh"
+    # base image (qa-bot) is build using the Dockerfile
+    timeout -s SIGKILL 2h docker run -v `pwd`:/mnt/ qa-bot bash -c "cd /mnt/ && ./tools/qa-check.sh"
+    # remove all docker containers
+    docker rm $(docker ps -aq)
 else
     echo "Branch $BRANCH from repo $REPO does not contain the qa-check.sh script"
 fi
