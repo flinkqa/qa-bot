@@ -2,7 +2,6 @@
 
 # fail immediately
 set -e
-set -o
 
 REPO=$1
 BRANCH=$2
@@ -14,6 +13,11 @@ if [ ! -d  "flink" ] ; then
 fi
 
 cd flink
+
+# reset flink repository
+git reset --hard HEAD
+git clean -f
+
 git checkout master
 git pull origin master
 
