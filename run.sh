@@ -5,9 +5,9 @@ set -e
 
 cleanup_on_exit() {
     # stop all docker containers
-    docker stop $(docker ps -aq)
+    docker stop $(docker ps -aq) > /dev/null
     # remove all docker containers
-    docker rm $(docker ps -aq)
+    docker rm $(docker ps -aq) > /dev/null
 }
 
 print_message_on_error() {
@@ -48,7 +48,7 @@ if [ -f "tools/qa-check.sh" ] ; then
     # link source into /mnt inside container
     # run and kill after 2 hours
     # base image (qa-bot) is build using the Dockerfile
-    timeout -s SIGKILL 2h docker run -v `pwd`:/mnt/ qa-bot bash -c "cd /mnt/ && ./tools/qa-check.sh" &> /dev/null
+    time timeout -s SIGKILL 4h docker run -v `pwd`:/mnt/ qa-bot bash -c "cd /mnt/ && ./tools/qa-check.sh" &> /dev/null
     # print the output
     cat "tools/_qa_workdir/qa_results.txt"
 else
